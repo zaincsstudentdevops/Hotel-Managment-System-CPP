@@ -1,0 +1,7 @@
+# Ignore compiled Windows executables and object files
+*.exe
+*.o
+*.out
+
+# Ignore VS Code local settings folder
+.vscode/
