@@ -1,38 +1,39 @@
+
 #include <iostream>
-#include "Room.h"
-#include "Customer.h"
-#include "Reservation.h"
-#include "Payment.h"
+#include "Hotel.h"
 
 using namespace std;
 
 int main() {
-    cout << "--- STAGE 1 TEST: CONNECTING ALL 4 CORE CLASSES ---\n\n";
+    Hotel myHotel;
 
-    Room room101(101, "Deluxe", 8500.0, "Available");
-    room101.displayRoom();
+    cout << "===== STAGE 2: HOTEL ROOM ARRAY TEST =====\n";
 
-    Customer guest1(1, "Zain ul Abedin", "0300-1234567", "zain@example.com", "34402-1234567-1");
-    guest1.displayCustomer();
+    Room room1(101, "Single", 4000.0, "Available");
+    Room room2(102, "Double", 6000.0, "Available");
+    Room room3(103, "Deluxe", 8500.0, "Available");
 
-    if (room101.isAvailable()) {
-        Reservation booking1(501, guest1.getCustomerId(), room101.getRoomNumber(),
-                             "2026-11-25", "2026-11-28", 3, room101.getPricePerNight());
-        room101.setStatus("Occupied");
-        booking1.setStatus("CheckedIn");
+    myHotel.addRoom(room1);
+    myHotel.addRoom(room2);
+    myHotel.addRoom(room3);
 
-        cout << "\n[Booking Created & Guest Checked In]\n";
-        booking1.displayReservation();
-        room101.displayRoom();
+    myHotel.displayAllRooms();
 
-        cout << "\n[Processing Check-Out & Billing]\n";
-        Payment receipt1(9001, booking1.getReservationId(), booking1.getTotalCost(), "Card", "2026-11-28");
-        booking1.setStatus("CheckedOut");
-        room101.setStatus("Available");
+    cout << "\n===== SEARCHING FOR ROOM 102 =====\n";
 
-        receipt1.displayReceipt();
-        room101.displayRoom();
+    int index = myHotel.findRoomIndex(102);
+
+    if (index != -1) {
+        cout << "Room 102 found!\n";
+    } else {
+        cout << "Room not found.\n";
     }
+
+    cout << "\n===== UPDATING ROOM STATUS =====\n";
+
+    myHotel.updateRoomStatus(102, "Occupied");
+
+    myHotel.displayAllRooms();
 
     return 0;
 }
