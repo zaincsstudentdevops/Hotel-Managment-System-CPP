@@ -22,7 +22,6 @@ bool Hotel::addRoom(Room room) {
     rooms[roomCount] = room;
     roomCount++;
 
-    cout << "Room added successfully.\n";
     return true;
 }
 
@@ -34,6 +33,15 @@ int Hotel::findRoomIndex(int roomNumber) const {
     }
 
     return -1;
+}
+
+const Room* Hotel::findRoom(int roomNumber) const {
+    int index = findRoomIndex(roomNumber);
+    if (index == -1) {
+        return nullptr;
+    }
+
+    return &rooms[index];
 }
 
 bool Hotel::updateRoomStatus(int roomNumber, string newStatus) {

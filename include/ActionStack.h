@@ -23,6 +23,9 @@ public:
     ActionStack();
     ~ActionStack();
 
+    ActionStack(const ActionStack&) = delete;
+    ActionStack& operator=(const ActionStack&) = delete;
+
     void push(string action);
     string pop();
     bool isEmpty();

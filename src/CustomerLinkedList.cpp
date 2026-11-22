@@ -8,12 +8,16 @@ CustomerLinkedList::CustomerLinkedList() {
     head = nullptr;
 }
 
-void CustomerLinkedList::insertCustomer(Customer customer) {
+bool CustomerLinkedList::insertCustomer(Customer customer) {
+    if (searchById(customer.getCustomerId()) != nullptr) {
+        return false;
+    }
+
     Node* newNode = new Node(customer);
 
     if (head == nullptr) {
         head = newNode;
-        return;
+        return true;
     }
 
     Node* current = head;
@@ -23,6 +27,7 @@ void CustomerLinkedList::insertCustomer(Customer customer) {
     }
 
     current->next = newNode;
+    return true;
 }
 
 Customer* CustomerLinkedList::searchById(int id) {

@@ -14,6 +14,7 @@ public:
 
     bool addRoom(Room room);
     int findRoomIndex(int roomNumber) const;
+    const Room* findRoom(int roomNumber) const;
     bool updateRoomStatus(int roomNumber, string newStatus);
     void displayAllRooms() const;
 };

@@ -24,6 +24,9 @@ public:
     WaitingQueue();
     ~WaitingQueue();
 
+    WaitingQueue(const WaitingQueue&) = delete;
+    WaitingQueue& operator=(const WaitingQueue&) = delete;
+
     void enqueue(string customerName);
     string dequeue();
     bool isEmpty();

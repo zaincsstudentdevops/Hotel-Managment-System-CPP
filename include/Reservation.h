@@ -1,6 +1,7 @@
 #ifndef RESERVATION_H
 #define RESERVATION_H
 
+#include "Payment.h"
 #include <string>
 using namespace std;
 
@@ -14,6 +15,8 @@ private:
     int numberOfNights;
     double totalCost;
     string status;        // "Confirmed", "CheckedIn", "CheckedOut", "Cancelled"
+    Payment payment;
+    bool paymentRecorded;
 
 public:
     Reservation();
@@ -27,8 +30,10 @@ public:
     int getNumberOfNights() const;
     double getTotalCost() const;
     string getStatus() const;
+    bool hasPayment() const;
 
     void setStatus(string newStatus);
+    bool recordPayment(const Payment& payment);
     bool overlapsWith(string reqStart, string reqEnd) const;
     void displayReservation() const;
 };

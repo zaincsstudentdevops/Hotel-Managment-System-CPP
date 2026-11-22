@@ -8,12 +8,16 @@ ReservationLinkedList::ReservationLinkedList() {
     head = nullptr;
 }
 
-void ReservationLinkedList::insertReservation(Reservation reservation) {
+bool ReservationLinkedList::insertReservation(Reservation reservation) {
+    if (searchById(reservation.getReservationId()) != nullptr) {
+        return false;
+    }
+
     Node* newNode = new Node(reservation);
 
     if (head == nullptr) {
         head = newNode;
-        return;
+        return true;
     }
 
     Node* current = head;
@@ -23,6 +27,7 @@ void ReservationLinkedList::insertReservation(Reservation reservation) {
     }
 
     current->next = newNode;
+    return true;
 }
 
 Reservation* ReservationLinkedList::searchById(int id) {
@@ -37,6 +42,24 @@ Reservation* ReservationLinkedList::searchById(int id) {
     }
 
     return nullptr;
+}
+
+bool ReservationLinkedList::hasOverlappingReservation(
+    int roomNumber,
+    const string& checkInDate,
+    const string& checkOutDate
+) const {
+    Node* current = head;
+    while (current != nullptr) {
+        if (current->data.getRoomNumber() == roomNumber &&
+            current->data.overlapsWith(checkInDate, checkOutDate)) {
+            return true;
+        }
+
+        current = current->next;
+    }
+
+    return false;
 }
 
 bool ReservationLinkedList::deleteReservation(int id) {

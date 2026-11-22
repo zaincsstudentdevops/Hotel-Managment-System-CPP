@@ -25,7 +25,10 @@ public:
     CustomerLinkedList();
     ~CustomerLinkedList();
 
-    void insertCustomer(Customer customer);
+    CustomerLinkedList(const CustomerLinkedList&) = delete;
+    CustomerLinkedList& operator=(const CustomerLinkedList&) = delete;
+
+    bool insertCustomer(Customer customer);
     Customer* searchById(int id);
     Customer* searchByName(string name);
     bool deleteCustomer(int id);

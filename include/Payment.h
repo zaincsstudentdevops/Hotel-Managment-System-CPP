@@ -11,6 +11,7 @@ private:
     double amount;
     string paymentMethod; // "Cash" or "Card"
     string paymentDate;
+    string paymentStatus;
 
 public:
     Payment();
@@ -20,6 +21,8 @@ public:
     int getReservationId() const;
     double getAmount() const;
     string getPaymentMethod() const;
+    string getPaymentDate() const;
+    string getPaymentStatus() const;
     void displayReceipt() const;
 };
 
