@@ -2,6 +2,8 @@
 #include "Hotel.h"
 #include "CustomerLinkedList.h"
 #include "ReservationLinkedList.h"
+#include "ActionStack.h"
+#include "WaitingQueue.h"
 
 using namespace std;
 
@@ -114,6 +116,42 @@ int main() {
 
     cout << "\nReservations After Deletion:\n";
     reservations.displayAllReservations();
+
+
+    cout << "\n===== STAGE 4A: STACK TEST =====\n";
+
+    ActionStack actionHistory;
+
+    actionHistory.push("Room 101 added");
+    actionHistory.push("Customer Ali registered");
+    actionHistory.push("Reservation 501 created");
+
+    cout << "\nAll Actions:\n";
+    actionHistory.display();
+
+    cout << "\nRemoving Latest Action:\n";
+    cout << actionHistory.pop() << endl;
+
+    cout << "\nActions After Pop:\n";
+    actionHistory.display();
+
+
+    cout << "\n===== STAGE 4B: QUEUE TEST =====\n";
+
+    WaitingQueue waitingList;
+
+    waitingList.enqueue("Ali Ahmed");
+    waitingList.enqueue("Zain ul Abedin");
+    waitingList.enqueue("Ahmed Khan");
+
+    cout << "\nWaiting Customers:\n";
+    waitingList.display();
+
+    cout << "\nServing First Customer:\n";
+    cout << waitingList.dequeue() << endl;
+
+    cout << "\nRemaining Waiting Customers:\n";
+    waitingList.display();
 
 
     return 0;
