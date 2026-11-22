@@ -1,7 +1,7 @@
-
 #include <iostream>
 #include "Hotel.h"
 #include "CustomerLinkedList.h"
+#include "ReservationLinkedList.h"
 
 using namespace std;
 
@@ -21,6 +21,7 @@ int main() {
 
     myHotel.displayAllRooms();
 
+
     cout << "\n===== STAGE 3: CUSTOMER LINKED LIST =====\n";
 
     CustomerLinkedList customers;
@@ -37,6 +38,7 @@ int main() {
     cout << "\nAll Customers:\n";
     customers.displayAllCustomers();
 
+
     cout << "\nSearching Customer ID 2:\n";
 
     Customer* found = customers.searchById(2);
@@ -46,6 +48,7 @@ int main() {
     } else {
         cout << "Customer not found.\n";
     }
+
 
     cout << "\nSearching by Name:\n";
 
@@ -57,6 +60,7 @@ int main() {
         cout << "Customer not found.\n";
     }
 
+
     cout << "\nDeleting Customer ID 1:\n";
 
     if (customers.deleteCustomer(1)) {
@@ -65,8 +69,52 @@ int main() {
         cout << "Customer not found.\n";
     }
 
+
     cout << "\nCustomers After Deletion:\n";
     customers.displayAllCustomers();
+
+
+    cout << "\n===== STAGE 3B: RESERVATION LINKED LIST =====\n";
+
+    ReservationLinkedList reservations;
+
+    Reservation r1(501, 1, 101, "2026-11-25",
+                   "2026-11-28", 3, 4000.0);
+
+    Reservation r2(502, 2, 102, "2026-11-26",
+                   "2026-11-29", 3, 6000.0);
+
+    reservations.insertReservation(r1);
+    reservations.insertReservation(r2);
+
+
+    cout << "\nAll Reservations:\n";
+    reservations.displayAllReservations();
+
+
+    cout << "\nSearching Reservation ID 502:\n";
+
+    Reservation* foundReservation = reservations.searchById(502);
+
+    if (foundReservation != nullptr) {
+        foundReservation->displayReservation();
+    } else {
+        cout << "Reservation not found.\n";
+    }
+
+
+    cout << "\nDeleting Reservation ID 501:\n";
+
+    if (reservations.deleteReservation(501)) {
+        cout << "Reservation deleted successfully.\n";
+    } else {
+        cout << "Reservation not found.\n";
+    }
+
+
+    cout << "\nReservations After Deletion:\n";
+    reservations.displayAllReservations();
+
 
     return 0;
 }
