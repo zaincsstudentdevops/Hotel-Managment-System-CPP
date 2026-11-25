@@ -14,8 +14,8 @@ private:
 public:
     Room();
     Room(int number, string cat, double price, string stat = "Available");
-
     int getRoomNumber() const;
+
     string getCategory() const;
     double getPricePerNight() const;
     string getStatus() const;
