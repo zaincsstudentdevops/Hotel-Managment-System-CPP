@@ -196,6 +196,81 @@ bool HotelBackend::loadAll(std::string& error) {
     return true;
 }
 
+std::vector<Customer> HotelBackend::getCustomersSnapshot() const {
+    return customers.getAllCustomers();
+}
+
+std::vector<Room> HotelBackend::getRoomsSnapshot() const {
+    return hotel.getAllRooms();
+}
+
+std::vector<Reservation> HotelBackend::getReservationsSnapshot() const {
+    return reservations.getAllReservations();
+}
+
+std::vector<Payment> HotelBackend::getPaymentsSnapshot() const {
+    std::vector<Payment> payments;
+    const std::vector<Reservation> allReservations =
+        reservations.getAllReservations();
+    for (const Reservation& reservation : allReservations) {
+        if (reservation.hasPayment()) {
+            payments.push_back(reservation.getPayment());
+        }
+    }
+    return payments;
+}
+
+bool HotelBackend::getWaitingListSnapshot(
+    std::vector<WaitingListEntrySnapshot>& entries,
+    std::string& error
+) const {
+    return waitingListRepository.loadEntrySnapshots(entries, error);
+}
+
+DashboardSnapshot HotelBackend::getDashboardSnapshot() const {
+    DashboardSnapshot snapshot;
+    const std::vector<Customer> allCustomers =
+        customers.getAllCustomers();
+    const std::vector<Room> allRooms = hotel.getAllRooms();
+    const std::vector<Reservation> allReservations =
+        reservations.getAllReservations();
+    const std::vector<Payment> allPayments = getPaymentsSnapshot();
+
+    snapshot.totalCustomers = allCustomers.size();
+    snapshot.totalRooms = allRooms.size();
+    snapshot.totalReservations = allReservations.size();
+    snapshot.totalPayments = allPayments.size();
+    snapshot.waitingListSize = waitingList.size();
+
+    long double totalPaymentsAmount = 0.0L;
+    for (const Room& room : allRooms) {
+        if (room.getStatus() == "Available") {
+            ++snapshot.availableRooms;
+        } else if (room.getStatus() == "Occupied") {
+            ++snapshot.occupiedRooms;
+        } else if (room.getStatus() == "Maintenance") {
+            ++snapshot.maintenanceRooms;
+        }
+    }
+    for (const Reservation& reservation : allReservations) {
+        if (reservation.getStatus() == "Confirmed") {
+            ++snapshot.confirmedReservations;
+        } else if (reservation.getStatus() == "CheckedIn") {
+            ++snapshot.checkedInReservations;
+        } else if (reservation.getStatus() == "CheckedOut") {
+            ++snapshot.checkedOutReservations;
+        } else if (reservation.getStatus() == "Cancelled") {
+            ++snapshot.cancelledReservations;
+        }
+    }
+    for (const Payment& payment : allPayments) {
+        totalPaymentsAmount += payment.getAmount();
+    }
+    snapshot.totalPaymentsAmount =
+        static_cast<double>(totalPaymentsAmount);
+    return snapshot;
+}
+
 bool HotelBackend::addRoom(const Room& room, std::string& error) {
     error.clear();
     if (room.getStatus() != "Available") {
@@ -716,6 +791,15 @@ bool HotelBackend::enqueueWaitingCustomer(
     const std::string& name,
     std::string& error
 ) {
+    unsigned long long entryId = 0;
+    return enqueueWaitingCustomer(name, entryId, error);
+}
+
+bool HotelBackend::enqueueWaitingCustomer(
+    const std::string& name,
+    unsigned long long& createdEntryId,
+    std::string& error
+) {
     error.clear();
     DatabaseTransaction transaction(database);
     if (!transaction.begin(error)) {
@@ -738,5 +822,6 @@ bool HotelBackend::enqueueWaitingCustomer(
     }
     waitingList.enqueue(name);
     actionHistory.push(action);
+    createdEntryId = entryId;
     return true;
 }

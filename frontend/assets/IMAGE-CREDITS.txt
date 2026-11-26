@@ -1,0 +1,20 @@
+Decorative hotel and room category photographs
+
+The photographs in this directory were downloaded from the Pexels image CDN
+and are used under the Pexels License:
+https://www.pexels.com/license/
+
+room-single.jpg
+https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg
+
+room-double.jpg
+https://images.pexels.com/photos/164595/pexels-photo-164595.jpeg
+
+room-deluxe.jpg
+https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg
+
+hotel-pool.jpg
+https://images.pexels.com/photos/189296/pexels-photo-189296.jpeg
+
+Room images are illustrative category photography. The current database does
+not associate photographs with individual rooms.

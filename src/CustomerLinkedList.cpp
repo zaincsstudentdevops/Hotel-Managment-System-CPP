@@ -110,6 +110,17 @@ std::size_t CustomerLinkedList::size() const {
     return count;
 }
 
+std::vector<Customer> CustomerLinkedList::getAllCustomers() const {
+    std::vector<Customer> customers;
+    customers.reserve(size());
+    Node* current = head;
+    while (current != nullptr) {
+        customers.push_back(current->data);
+        current = current->next;
+    }
+    return customers;
+}
+
 CustomerLinkedList::~CustomerLinkedList() {
     Node* current = head;
 

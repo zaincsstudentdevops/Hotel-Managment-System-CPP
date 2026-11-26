@@ -5,6 +5,7 @@
 #include "Customer.h"
 #include <cstddef>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -35,6 +36,7 @@ public:
     bool deleteCustomer(int id);
     void displayAllCustomers();
     std::size_t size() const;
+    std::vector<Customer> getAllCustomers() const;
 };
 
 #endif

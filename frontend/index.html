@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0e13">
+  <title>Haven Hotel | Management</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/app.js" defer></script>
+</head>
+<body>
+  <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="icon-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="icon-bed" viewBox="0 0 24 24"><path d="M2 4v16M2 8h16a4 4 0 0 1 4 4v8M2 17h20M6 8v9"/><path d="M6 12h4"/></symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></symbol>
+    <symbol id="icon-credit" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></symbol>
+    <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.64 9A7 7 0 0 1 17.5 6L20 12M4 12l2.5 6A7 7 0 0 0 18.36 15"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" data-page-link="dashboard" aria-label="Haven Hotel home">
+        <span class="brand-mark">H</span>
+        <span class="brand-copy"><strong>HAVEN</strong><small>HOTEL MANAGEMENT</small></span>
+      </a>
+      <div class="nav-caption">WORKSPACE</div>
+      <nav class="main-nav" aria-label="Main navigation">
+        <button class="nav-link active" data-page-link="dashboard" aria-current="page"><svg><use href="#icon-grid"/></svg><span>Overview</span></button>
+        <button class="nav-link" data-page-link="customers"><svg><use href="#icon-users"/></svg><span>Customers</span></button>
+        <button class="nav-link" data-page-link="rooms"><svg><use href="#icon-bed"/></svg><span>Rooms</span></button>
+        <button class="nav-link" data-page-link="reservations"><svg><use href="#icon-calendar"/></svg><span>Reservations</span></button>
+        <button class="nav-link" data-page-link="payments"><svg><use href="#icon-credit"/></svg><span>Payments</span></button>
+        <button class="nav-link" data-page-link="waiting-list"><svg><use href="#icon-clock"/></svg><span>Waiting list</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="server-status"><span class="status-pulse" id="serverStatusPulse"></span><span><strong id="systemStatusText">Connecting…</strong><small>MariaDB · Local server</small></span></div>
+        <div class="sidebar-footer">HAVEN HOTEL <span>•</span> MANAGEMENT</div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false"><svg><use href="#icon-menu"/></svg></button>
+        <div class="breadcrumb"><span>Haven Hotel</span><span class="crumb-separator">/</span><strong id="currentPageName">Overview</strong></div>
+        <div class="topbar-actions">
+          <span class="live-pill"><span id="liveStatusPulse"></span><strong id="liveStatusText">CONNECTING</strong></span>
+          <button class="icon-button" id="refreshButton" aria-label="Refresh dashboard data" title="Refresh data"><svg><use href="#icon-refresh"/></svg></button>
+          <div class="user-avatar" aria-label="Hotel administrator">HA</div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <section class="page active" id="page-dashboard" data-page="dashboard">
+          <div class="dashboard-hero">
+            <img class="dashboard-hero-image" src="/assets/hotel-pool.jpg" alt="">
+            <div class="dashboard-hero-shade"></div>
+            <div class="dashboard-hero-copy">
+              <p class="hero-kicker">HAVEN HOTEL · HOTEL OPERATIONS</p>
+              <h1>Good day, Administrator</h1>
+              <p>A considered view of your rooms, reservations and guest activity.</p>
+            </div>
+            <div class="hero-date"><span>Today</span><strong id="todayLabel"></strong></div>
+          </div>
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-top"><span class="stat-label">Total rooms</span><span class="stat-icon gold"><svg><use href="#icon-bed"/></svg></span></div><div class="stat-value" id="statRooms">—</div><div class="stat-foot"><span id="statRoomsAvailable">— available</span><span class="stat-dot"></span><span id="statRoomsOccupied">— occupied</span></div></article>
+            <article class="stat-card"><div class="stat-top"><span class="stat-label">Customers</span><span class="stat-icon blue"><svg><use href="#icon-users"/></svg></span></div><div class="stat-value" id="statCustomers">—</div><div class="stat-foot">Registered in the system</div></article>
+            <article class="stat-card"><div class="stat-top"><span class="stat-label">Reservations</span><span class="stat-icon violet"><svg><use href="#icon-calendar"/></svg></span></div><div class="stat-value" id="statReservations">—</div><div class="stat-foot"><span id="statReservationsConfirmed">— confirmed</span><span class="stat-dot"></span><span id="statReservationsCheckedIn">— checked in</span></div></article>
+            <article class="stat-card"><div class="stat-top"><span class="stat-label">Payments received</span><span class="stat-icon green"><svg><use href="#icon-credit"/></svg></span></div><div class="stat-value currency-value" id="statPayments">—</div><div class="stat-foot"><span id="statPaymentCount">— payments recorded</span></div></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel occupancy-panel">
+              <div class="panel-heading"><div><p class="eyebrow">ROOM STATUS</p><h2>Occupancy overview</h2></div><span class="panel-note" id="occupancyRate">—</span></div>
+              <div class="occupancy-content">
+                <div class="donut-wrap"><div class="donut" id="occupancyDonut"><div class="donut-center"><strong id="occupancyPercent">—</strong><span>OCCUPIED</span></div></div></div>
+                <div class="legend-list">
+                  <div class="legend-item"><span class="legend-swatch occupied"></span><span>Occupied</span><strong id="occupiedCount">—</strong></div>
+                  <div class="legend-item"><span class="legend-swatch available"></span><span>Available</span><strong id="availableCount">—</strong></div>
+                  <div class="legend-item"><span class="legend-swatch maintenance"></span><span>Maintenance</span><strong id="maintenanceCount">—</strong></div>
+                  <div class="legend-total"><span>Total rooms</span><strong id="occupancyTotal">—</strong></div>
+                </div>
+              </div>
+              <div class="occupancy-foot"><span>Reservation status</span><span id="reservationStatusSummary">Loading…</span></div>
+            </article>
+            <article class="panel quick-panel">
+              <div class="panel-heading"><div><p class="eyebrow">QUICK ACTIONS</p><h2>Manage your hotel</h2></div></div>
+              <div class="quick-actions">
+                <button class="quick-action" data-page-link="customers"><span class="quick-icon blue"><svg><use href="#icon-users"/></svg></span><span><strong>Add a customer</strong><small>Register a new guest</small></span><svg class="quick-arrow"><use href="#icon-arrow"/></svg></button>
+                <button class="quick-action" data-page-link="rooms"><span class="quick-icon gold"><svg><use href="#icon-bed"/></svg></span><span><strong>Add a room</strong><small>Expand your room inventory</small></span><svg class="quick-arrow"><use href="#icon-arrow"/></svg></button>
+                <button class="quick-action" data-page-link="reservations"><span class="quick-icon violet"><svg><use href="#icon-calendar"/></svg></span><span><strong>Create a reservation</strong><small>Book a stay for a customer</small></span><svg class="quick-arrow"><use href="#icon-arrow"/></svg></button>
+              </div>
+            </article>
+            <article class="panel reservation-status-panel">
+              <div class="panel-heading">
+                <div><p class="eyebrow">BOOKING MIX</p><h2>Reservation status</h2></div>
+                <span class="panel-note">Current records</span>
+              </div>
+              <div id="reservationStatusChart" class="reservation-status-chart" aria-label="Reservation counts by status">
+                <p class="table-message">Loading reservation status…</p>
+              </div>
+            </article>
+          </div>
+
+          <article class="panel table-panel">
+            <div class="panel-heading"><div><p class="eyebrow">BOOKING ACTIVITY</p><h2>Recent reservations</h2></div><button class="text-button" data-page-link="reservations">View all <svg><use href="#icon-arrow"/></svg></button></div>
+            <div class="table-wrap"><table><thead><tr><th>RESERVATION</th><th>CUSTOMER</th><th>ROOM</th><th>DATES</th><th>AMOUNT</th><th>STATUS</th></tr></thead><tbody id="recentReservations"><tr><td colspan="6" class="table-message">Loading reservations…</td></tr></tbody></table></div>
+            <p class="table-footnote">The existing database has no reservation creation timestamp; this list is ordered by reservation ID.</p>
+          </article>
+        </section>
+
+        <section class="page" id="page-customers" data-page="customers">
+          <div class="page-heading"><p class="eyebrow">GUEST DIRECTORY</p><h1>Customers</h1><p class="subheading">Manage guest profiles and contact information.</p></div>
+          <div class="customer-summary">
+            <span class="customer-summary-mark"><svg><use href="#icon-users"/></svg></span>
+            <div><span class="customer-summary-label">Registered guest profiles</span><strong id="customerSummaryTotal">—</strong></div>
+            <span class="customer-summary-note">Loaded from the hotel backend</span>
+          </div>
+          <div class="content-grid">
+            <article class="panel form-panel">
+              <div class="panel-heading"><div><p class="eyebrow">NEW PROFILE</p><h2>Register customer</h2></div><span class="form-step">01</span></div>
+              <form id="customerCreateForm" class="stack-form">
+                <label>Customer ID<input name="customer_id" type="number" min="1" required placeholder="Enter customer ID"></label>
+                <label>Full name<input name="full_name" required maxlength="150" placeholder="Guest full name"></label>
+                <label>Phone number<input name="phone_number" required maxlength="30" placeholder="+1 555 000 0000"></label>
+                <label>Email address<input name="email" type="email" required maxlength="254" placeholder="guest@example.com"></label>
+                <label>Identity document<input name="identity_document" required maxlength="50" placeholder="Passport or ID number"></label>
+                <button class="button button-primary" type="submit"><svg><use href="#icon-plus"/></svg> Register customer</button>
+                <p class="form-message" id="customerCreateMessage" aria-live="polite"></p>
+              </form>
+            </article>
+            <article class="panel search-panel">
+              <div class="panel-heading"><div><p class="eyebrow">QUICK LOOKUP</p><h2>Find a customer</h2></div></div>
+              <form id="customerSearchForm" class="search-form"><label class="sr-only" for="customerSearchId">Customer ID</label><div class="input-with-icon"><svg><use href="#icon-search"/></svg><input id="customerSearchId" type="number" min="1" placeholder="Search by customer ID"></div><button class="button button-dark" type="submit">Search</button></form>
+              <div id="customerSearchResult" class="search-result empty-state">Search for a customer by their ID.</div>
+              <div class="search-tip"><span class="tip-mark">i</span>Customer IDs are assigned by the hotel and must be unique.</div>
+            </article>
+          </div>
+          <article class="panel table-panel">
+            <div class="panel-heading"><div><p class="eyebrow">ALL GUESTS</p><h2>Customer directory <span class="count-pill" id="customerCount">—</span></h2></div><div class="table-tools"><input id="customerFilter" class="table-filter" type="search" placeholder="Filter loaded customers" aria-label="Filter customers"></div></div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>FULL NAME</th><th>PHONE</th><th>EMAIL</th><th>IDENTITY</th><th class="align-right">ACTIONS</th></tr></thead><tbody id="customersTable"><tr><td colspan="6" class="table-message">Loading customers…</td></tr></tbody></table></div>
+          </article>
+        </section>
+
+        <section class="page" id="page-rooms" data-page="rooms">
+          <div class="page-heading"><p class="eyebrow">ROOM INVENTORY</p><h1>Rooms</h1><p class="subheading">View room availability and add rooms to your hotel.</p></div>
+          <article class="panel form-panel compact-form-panel">
+            <div class="panel-heading"><div><p class="eyebrow">ROOM SETUP</p><h2>Add a room</h2></div><span class="form-step">01</span></div>
+            <form id="roomCreateForm" class="inline-form">
+              <label>Room number<input name="room_number" type="number" min="1" required placeholder="e.g. 204"></label>
+              <label>Category<select name="category" required><option value="">Select category</option><option>Single</option><option>Double</option><option>Deluxe</option></select></label>
+              <label>Price per night<input name="price_per_night" type="number" min="0.01" step="0.01" required placeholder="0.00"></label>
+              <button class="button button-primary align-end" type="submit"><svg><use href="#icon-plus"/></svg> Add room</button>
+            </form>
+            <p class="form-message" id="roomCreateMessage" aria-live="polite"></p>
+          </article>
+          <article class="panel table-panel">
+            <div class="panel-heading"><div><p class="eyebrow">ROOM DIRECTORY</p><h2>All rooms <span class="count-pill" id="roomCount">—</span></h2></div><div class="filter-group" id="roomFilters"><button class="filter-chip active" data-room-filter="all">All</button><button class="filter-chip" data-room-filter="Available">Available</button><button class="filter-chip" data-room-filter="Occupied">Occupied</button><button class="filter-chip" data-room-filter="Maintenance">Maintenance</button></div></div>
+            <div class="room-grid" id="roomsGrid" aria-live="polite">
+              <div class="table-message">Loading rooms…</div>
+            </div>
+            <p class="section-note">Category photographs are illustrative; room photographs are not stored in the existing database.</p>
+          </article>
+        </section>
+
+        <section class="page" id="page-reservations" data-page="reservations">
+          <div class="page-heading"><p class="eyebrow">BOOKING MANAGEMENT</p><h1>Reservations</h1><p class="subheading">Create and manage guest stays from check-in through checkout.</p></div>
+          <article class="panel form-panel reservation-form-panel">
+            <div class="panel-heading"><div><p class="eyebrow">NEW BOOKING</p><h2>Create a reservation</h2></div><span class="form-step">01</span></div>
+            <form id="reservationCreateForm" class="reservation-form">
+              <label>Reservation ID<input name="reservation_id" type="number" min="1" required placeholder="Enter reservation ID"></label>
+              <label>Customer<select name="customer_id" id="reservationCustomer" required><option value="">Select a customer</option></select></label>
+              <label>Room<select name="room_number" id="reservationRoom" required><option value="">Select an available room</option></select></label>
+              <label>Check-in<input name="check_in_date" type="date" required></label>
+              <label>Check-out<input name="check_out_date" type="date" required></label>
+              <div class="calculated-field"><span>Stay length</span><strong id="calculatedNights">— nights</strong></div>
+              <div class="calculated-field"><span>Estimated total</span><strong id="calculatedTotal">—</strong></div>
+              <button class="button button-primary" type="submit"><svg><use href="#icon-calendar"/></svg> Create reservation</button>
+            </form>
+            <p class="form-message" id="reservationCreateMessage" aria-live="polite"></p>
+          </article>
+          <article class="panel table-panel">
+            <div class="panel-heading"><div><p class="eyebrow">BOOKING RECORDS</p><h2>All reservations <span class="count-pill" id="reservationCount">—</span></h2></div><div class="filter-group" id="reservationFilters"><button class="filter-chip active" data-reservation-filter="all">All</button><button class="filter-chip" data-reservation-filter="Confirmed">Confirmed</button><button class="filter-chip" data-reservation-filter="CheckedIn">Checked in</button><button class="filter-chip" data-reservation-filter="CheckedOut">Checked out</button><button class="filter-chip" data-reservation-filter="Cancelled">Cancelled</button></div></div>
+            <div class="table-wrap"><table><thead><tr><th>RESERVATION</th><th>CUSTOMER</th><th>ROOM</th><th>STAY</th><th>TOTAL</th><th>STATUS</th><th>ACTIONS</th></tr></thead><tbody id="reservationsTable"><tr><td colspan="7" class="table-message">Loading reservations…</td></tr></tbody></table></div>
+          </article>
+        </section>
+
+        <section class="page" id="page-payments" data-page="payments">
+          <div class="page-heading"><p class="eyebrow">FINANCIAL RECORDS</p><h1>Payments</h1><p class="subheading">Record and review reservation payments.</p></div>
+          <div class="payment-summary-grid">
+            <article class="stat-card payment-summary-card">
+              <span class="stat-label">Payments received</span>
+              <strong class="stat-value" id="paymentTotalSummary">—</strong>
+              <span class="stat-foot">Recorded reservation payments</span>
+            </article>
+            <article class="stat-card payment-summary-card">
+              <span class="stat-label">Transactions</span>
+              <strong class="stat-value" id="paymentCountSummary">—</strong>
+              <span class="stat-foot">Payments in the system</span>
+            </article>
+            <article class="stat-card payment-summary-card">
+              <span class="stat-label">Awaiting payment</span>
+              <strong class="stat-value" id="unpaidReservationCount">—</strong>
+              <span class="stat-foot">Reservations without a recorded payment</span>
+            </article>
+          </div>
+          <article class="panel form-panel compact-form-panel">
+            <div class="panel-heading"><div><p class="eyebrow">COLLECT PAYMENT</p><h2>Record a payment</h2></div><span class="form-step">01</span></div>
+            <form id="paymentCreateForm" class="inline-form">
+              <label>Reservation<select name="reservation_id" id="paymentReservation" required><option value="">Select an unpaid reservation</option></select></label>
+              <label>Amount<input name="amount" type="number" min="0.01" step="0.01" required placeholder="Reservation total"></label>
+              <label>Payment method<select name="payment_method" required><option value="">Select method</option><option>Cash</option><option>Card</option></select></label>
+              <label>Payment date<input name="payment_date" type="date" required></label>
+              <button class="button button-primary align-end" type="submit"><svg><use href="#icon-credit"/></svg> Record payment</button>
+            </form>
+            <p class="form-message" id="paymentCreateMessage" aria-live="polite"></p>
+          </article>
+          <article class="panel table-panel">
+            <div class="panel-heading"><div><p class="eyebrow">TRANSACTION HISTORY</p><h2>All payments <span class="count-pill" id="paymentCount">—</span></h2></div></div>
+            <div class="table-wrap"><table><thead><tr><th>PAYMENT</th><th>RESERVATION</th><th>GUEST</th><th>AMOUNT</th><th>METHOD</th><th>DATE</th><th>STATUS</th></tr></thead><tbody id="paymentsTable"><tr><td colspan="7" class="table-message">Loading payments…</td></tr></tbody></table></div>
+          </article>
+        </section>
+
+        <section class="page" id="page-waiting-list" data-page="waiting-list">
+          <div class="page-heading"><p class="eyebrow">GUEST QUEUE</p><h1>Waiting list</h1><p class="subheading">Manage guests waiting for a room to become available.</p></div>
+          <div class="waiting-layout">
+            <article class="panel form-panel waiting-form-panel">
+              <div class="panel-heading"><div><p class="eyebrow">JOIN THE QUEUE</p><h2>Add a guest</h2></div><span class="form-step">01</span></div>
+              <form id="waitingCreateForm" class="stack-form">
+                <label>Guest name<input name="customer_name" required maxlength="150" placeholder="Enter guest name"></label>
+                <button class="button button-primary" type="submit"><svg><use href="#icon-plus"/></svg> Add to waiting list</button>
+                <p class="form-message" id="waitingCreateMessage" aria-live="polite"></p>
+              </form>
+              <div class="queue-note"><span class="tip-mark">i</span><p>The queue is FIFO. The first guest is notified when a room is released during checkout.</p></div>
+            </article>
+            <article class="panel queue-panel">
+              <div class="panel-heading"><div><p class="eyebrow">LIVE QUEUE</p><h2>Waiting guests <span class="count-pill" id="waitingCount">—</span></h2></div><span class="queue-live"><span></span> LIVE</span></div>
+              <div id="waitingEntries" class="waiting-entries"><div class="table-message">Loading waiting list…</div></div>
+            </article>
+          </div>
+        </section>
+      </div>
+      <footer class="app-footer"><span>HAVEN HOTEL MANAGEMENT</span><span>Connected to your local MariaDB system</span></footer>
+    </main>
+  </div>
+
+  <dialog id="customerEditDialog" class="edit-dialog">
+    <form id="customerEditForm" class="dialog-card">
+      <div class="panel-heading"><div><p class="eyebrow">GUEST PROFILE</p><h2>Edit customer</h2></div><button class="icon-button" type="button" id="closeEditDialog" aria-label="Close dialog">×</button></div>
+      <input type="hidden" name="customer_id">
+      <label>Full name<input name="full_name" required maxlength="150"></label>
+      <label>Phone number<input name="phone_number" required maxlength="30"></label>
+      <label>Email address<input name="email" type="email" required maxlength="254"></label>
+      <label>Identity document<input name="identity_document" required maxlength="50"></label>
+      <p class="form-message" id="customerEditMessage" aria-live="polite"></p>
+      <div class="dialog-actions"><button class="button button-quiet" type="button" id="cancelEditDialog">Cancel</button><button class="button button-primary" type="submit">Save changes</button></div>
+    </form>
+  </dialog>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

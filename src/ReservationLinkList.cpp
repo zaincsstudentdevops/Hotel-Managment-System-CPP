@@ -100,6 +100,17 @@ std::size_t ReservationLinkedList::size() const {
     return count;
 }
 
+std::vector<Reservation> ReservationLinkedList::getAllReservations() const {
+    std::vector<Reservation> reservations;
+    reservations.reserve(size());
+    Node* current = head;
+    while (current != nullptr) {
+        reservations.push_back(current->data);
+        current = current->next;
+    }
+    return reservations;
+}
+
 void ReservationLinkedList::displayAllReservations() {
     Node* current = head;
 
