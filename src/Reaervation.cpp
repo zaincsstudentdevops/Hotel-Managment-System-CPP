@@ -1,7 +1,8 @@
 #include "Reservation.h"
+#include "Money.h"
+
 #include <iostream>
 #include <iomanip>
-#include <cmath>
 
 Reservation::Reservation()
     : reservationId(0), customerId(0), roomNumber(0), numberOfNights(0),
@@ -14,6 +15,28 @@ Reservation::Reservation(int resId, int custId, int rmNum, string inDate, string
     totalCost = numberOfNights * ratePerNight;
 }
 
+Reservation Reservation::fromStoredData(
+    int resId,
+    int custId,
+    int rmNum,
+    string inDate,
+    string outDate,
+    int nights,
+    double storedTotal,
+    string storedStatus
+) {
+    Reservation reservation;
+    reservation.reservationId = resId;
+    reservation.customerId = custId;
+    reservation.roomNumber = rmNum;
+    reservation.checkInDate = std::move(inDate);
+    reservation.checkOutDate = std::move(outDate);
+    reservation.numberOfNights = nights;
+    reservation.totalCost = storedTotal;
+    reservation.status = std::move(storedStatus);
+    return reservation;
+}
+
 int Reservation::getReservationId() const { return reservationId; }
 int Reservation::getCustomerId() const { return customerId; }
 int Reservation::getRoomNumber() const { return roomNumber; }
@@ -23,25 +46,38 @@ int Reservation::getNumberOfNights() const { return numberOfNights; }
 double Reservation::getTotalCost() const { return totalCost; }
 string Reservation::getStatus() const { return status; }
 bool Reservation::hasPayment() const { return paymentRecorded; }
+const Payment& Reservation::getPayment() const { return payment; }
 
 void Reservation::setStatus(string newStatus) { status = newStatus; }
 
 bool Reservation::recordPayment(const Payment& newPayment) {
+    std::int64_t paymentCents = 0;
+    std::int64_t totalCents = 0;
     if (paymentRecorded ||
         newPayment.getPaymentId() <= 0 ||
         newPayment.getReservationId() != reservationId ||
-        !isfinite(newPayment.getAmount()) ||
-        newPayment.getAmount() <= 0.0 ||
-        !isfinite(totalCost) ||
-        totalCost <= 0.0 ||
-        fabs(newPayment.getAmount() - totalCost) > 0.005 ||
+        !hotel_money::toCents(
+            newPayment.getAmount(),
+            hotel_money::kDecimal12_2MaxCents,
+            paymentCents
+        ) ||
+        !hotel_money::toCents(
+            totalCost, hotel_money::kDecimal12_2MaxCents, totalCents
+        ) ||
+        paymentCents != totalCents ||
         (newPayment.getPaymentMethod() != "Cash" &&
          newPayment.getPaymentMethod() != "Card") ||
         newPayment.getPaymentDate().empty()) {
         return false;
     }
 
-    payment = newPayment;
+    payment = Payment(
+        newPayment.getPaymentId(),
+        newPayment.getReservationId(),
+        hotel_money::fromCents(paymentCents),
+        newPayment.getPaymentMethod(),
+        newPayment.getPaymentDate()
+    );
     paymentRecorded = true;
     return true;
 }

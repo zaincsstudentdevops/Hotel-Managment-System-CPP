@@ -3,6 +3,7 @@
 #define WAITINGQUEUE_H
 
 #include <string>
+#include <cstddef>
 using namespace std;
 
 class WaitingQueue {
@@ -29,7 +30,9 @@ public:
 
     void enqueue(string customerName);
     string dequeue();
+    bool peek(string& customerName) const;
     bool isEmpty();
+    std::size_t size() const;
     void display();
 };
 

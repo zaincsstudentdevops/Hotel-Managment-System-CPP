@@ -28,6 +28,7 @@ public:
 
     void push(string action);
     string pop();
+    bool peek(string& action) const;
     bool isEmpty();
     void display();
 };

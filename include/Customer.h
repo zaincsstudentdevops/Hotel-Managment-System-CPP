@@ -22,8 +22,10 @@ public:
     string getEmail() const;
     string getIdentityDocument() const;
 
+    void setFullName(string name);
     void setPhoneNumber(string phone);
     void setEmail(string mail);
+    void setIdentityDocument(string document);
     void displayCustomer() const;
 };
 

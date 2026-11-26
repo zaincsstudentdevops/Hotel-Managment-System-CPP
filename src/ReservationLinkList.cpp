@@ -90,6 +90,16 @@ bool ReservationLinkedList::deleteReservation(int id) {
     return false;
 }
 
+std::size_t ReservationLinkedList::size() const {
+    std::size_t count = 0;
+    Node* current = head;
+    while (current != nullptr) {
+        ++count;
+        current = current->next;
+    }
+    return count;
+}
+
 void ReservationLinkedList::displayAllReservations() {
     Node* current = head;
 

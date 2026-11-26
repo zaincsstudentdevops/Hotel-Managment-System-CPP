@@ -3,6 +3,7 @@
 #define RESERVATIONLINKEDLIST_H
 
 #include "Reservation.h"
+#include <cstddef>
 #include <string>
 
 class ReservationLinkedList {
@@ -34,6 +35,7 @@ public:
         const string& checkOutDate
     ) const;
     bool deleteReservation(int id);
+    std::size_t size() const;
     void displayAllReservations();
 };
 
