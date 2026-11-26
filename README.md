@@ -1,26 +1,28 @@
 # Hotel Management System (C++)
 
-A Windows console application for managing hotel rooms, customers, reservations, payments, and a waiting list. The project demonstrates object-oriented C++ and manually implemented data structures. It is an in-memory learning project; information is not saved after the program exits.
+A Windows console application for managing hotel rooms, customers, reservations, payments, and a waiting list. The project demonstrates object-oriented C++ and manually implemented data structures. All six application data areas are persisted in MariaDB and loaded before the console menu is displayed.
 
 ## Technologies
 
 - C++
 - C++17
 - GCC `g++` on Windows (the project setup targets MSYS2 UCRT64)
+- MariaDB Connector/C 3.4.11
+- XAMPP MariaDB
 - VS Code can be used as the editor
 
-No database, server, or external library is required.
+MariaDB and MariaDB Connector/C are required to build and run the integrated application.
 
 ## Features
 
-- **Room management:** Add and display rooms. The `Hotel` class stores up to 50 rooms in a fixed-size array, rejects duplicate room numbers, and updates room status.
-- **Customer management:** Register and display customers. Duplicate customer IDs are rejected.
-- **Reservation management:** Create and display reservations. Customers and rooms must exist, reservation IDs must be unique, and dates and number of nights are validated.
-- **Booking conflict prevention:** Reservations for the same room cannot overlap. A checkout date may coincide with the next reservation's check-in date.
-- **Check-in and check-out:** Check-in requires a confirmed reservation and an available room. Check-out requires a checked-in reservation and marks its room available.
-- **Payments and receipts:** Record one full payment per reservation. The amount must match the reservation total; receipts show the reservation, amount, payment method, date, and status.
-- **Waiting queue:** Add customer names to a manually implemented FIFO queue. After a successful checkout, the first waiting name is notified that the room is available. The program does not create a reservation automatically.
-- **Action history:** A manually implemented LIFO stack records actions such as room and customer additions, reservation creation, payment, check-in, check-out, and waiting-list notifications.
+- **Room management:** Add and display rooms. The `Hotel` class stores up to 50 rooms in a fixed-size array, rejects duplicate room numbers, and persists room status.
+- **Customer management:** Load, register, search, update, display, and delete customers in MariaDB. Duplicate customer IDs are rejected, and customers with reservations cannot be deleted.
+- **Reservation management:** Create, display, and cancel persisted reservations. Customers and rooms must exist, reservation IDs must be unique, and dates and number of nights are validated.
+- **Booking conflict prevention:** Transactions lock the room row before checking for overlapping reservations and inserting a booking, preventing concurrent application bookings from overlapping. A checkout date may coincide with the next reservation's check-in date.
+- **Check-in and check-out:** Reservation and room statuses are updated in one transaction. Checkout also removes the oldest waiting-list entry and records the notification atomically.
+- **Payments and receipts:** Record one full payment per reservation. The database supplies payment IDs, and a unique reservation constraint prevents duplicate payments.
+- **Waiting queue:** Add customer names to a persisted FIFO queue backed by the existing linked-node queue. After a successful checkout, the first waiting name is notified that the room is available. The program does not create a reservation automatically.
+- **Action history:** Persist actions and load them into the existing LIFO stack, preserving newest-first display order.
 - **Input handling:** Numeric and required text input is validated. Invalid input is reported, and end-of-file exits safely.
 
 ## Project structure
@@ -34,25 +36,51 @@ Hotel-Management-System-CPP/
 │   ├── ActionStack.h
 │   ├── Customer.h
 │   ├── CustomerLinkedList.h
+│   ├── CustomerRepository.h
+│   ├── Database.h
+│   ├── DatabaseStatement.h
+│   ├── DatabaseTransaction.h
+│   ├── HotelBackend.h
 │   ├── Hotel.h
+│   ├── ActionHistoryRepository.h
 │   ├── Payment.h
+│   ├── PaymentRepository.h
 │   ├── Reservation.h
 │   ├── ReservationLinkedList.h
+│   ├── ReservationRepository.h
 │   ├── Room.h
+│   ├── RoomRepository.h
+│   ├── WaitingListRepository.h
 │   └── WaitingQueue.h
-└── src/
-    ├── ActionStack.cpp
-    ├── Customer.cpp
-    ├── CustomerLinkedList.cpp
-    ├── Hotel.cpp
-    ├── Payment.cpp
-    ├── Reaervation.cpp
-    ├── ReservationLinkList.cpp
-    ├── Room.cpp
-    └── WaitingQueue.cpp
+├── src/
+│   ├── ActionStack.cpp
+│   ├── Customer.cpp
+│   ├── CustomerLinkedList.cpp
+│   ├── CustomerRepository.cpp
+│   ├── Database.cpp
+│   ├── DatabaseTransaction.cpp
+│   ├── HotelBackend.cpp
+│   ├── ActionHistoryRepository.cpp
+│   ├── Hotel.cpp
+│   ├── Payment.cpp
+│   ├── PaymentRepository.cpp
+│   ├── Reaervation.cpp
+│   ├── ReservationLinkList.cpp
+│   ├── ReservationRepository.cpp
+│   ├── Room.cpp
+│   ├── RoomRepository.cpp
+│   ├── WaitingListRepository.cpp
+│   └── WaitingQueue.cpp
+└── database/
+    ├── schema.sql
+    ├── connection_test.cpp
+    ├── database_query_test.cpp
+    ├── customer_crud_test.cpp
+    ├── customer_integration_test.cpp
+    └── backend_integration_test.cpp
 ```
 
-The source filenames `Reaervation.cpp` and `ReservationLinkList.cpp` are spelled as they currently exist in the project. Local ignored build artifacts may also be present in the project folder: `Customer.o`, `Room.o`, and `hotel_app.exe`.
+The source filenames `Reaervation.cpp` and `ReservationLinkList.cpp` are spelled as they currently exist in the project. Generated executable and object files are ignored by Git.
 
 ## Main classes and data structures
 
@@ -61,6 +89,9 @@ The source filenames `Reaervation.cpp` and `ReservationLinkList.cpp` are spelled
 - **`Room`** stores a room number, category, price per night, and status (`Available`, `Occupied`, or `Maintenance`).
 - **`Hotel`** manages a fixed array of up to 50 rooms, room lookup, display, and status updates.
 - **`Customer`** stores a customer's ID, name, phone number, email, and identity document.
+- **`CustomerRepository`** loads and persists customers through the existing `Database` connection and synchronizes the in-memory customer list after successful database operations.
+- **Domain repositories** keep room, reservation, payment, waiting-list, and action-history SQL out of the console menu.
+- **`HotelBackend`** coordinates startup loading and multi-table transactions. In-memory objects are updated after database commits.
 - **`Reservation`** stores the customer and room IDs, check-in/check-out dates, number of nights, total cost, reservation status, and an optional payment.
 - **`Payment`** stores the payment and reservation IDs, amount, method, date, and payment status, and can display a receipt.
 
@@ -75,14 +106,18 @@ The pointer-owning structures release their nodes in their destructors and disab
 
 ## Build and run on Windows
 
-Open a terminal in the project root with GCC `g++` available (the project setup targets the MSYS2 UCRT64 environment), then run:
+Start the MariaDB service in XAMPP and make sure the `hotel_management` database and six tables from `database/schema.sql` exist. Install/configure MariaDB Connector/C for MSYS2 UCRT64. The application connects and loads customers, rooms, reservations, payments, waiting-list entries, and action history before showing the menu. Startup fails clearly if the connection, data validation, or 50-room capacity check fails.
+
+The VS Code task **Build Hotel Management System** builds the application with the configured UCRT64 compiler and Connector/C library. To build manually from PowerShell in the project root:
 
 ```powershell
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinclude main.cpp src/*.cpp -o hotel_app.exe
-.\hotel_app.exe
+C:\msys64\ucrt64\bin\g++.exe -std=c++17 -Wall -Wextra -pedantic -Iinclude -IC:\msys64\ucrt64\include\mariadb main.cpp src\*.cpp -LC:\msys64\ucrt64\lib -lmariadb -o hotel_app_ucrt64.exe
+.\hotel_app_ucrt64.exe
 ```
 
-The program displays nine top-level menu options. Option 5 opens a submenu for creating reservations, checking in, checking out, recording payments, or returning to the main menu.
+The original main-menu options remain available. Customer search, update, and delete are options 10–12. Option 5 opens a submenu for creating reservations, checking in, checking out, recording payments, returning to the main menu, or cancelling a confirmed reservation.
+
+The separate VS Code tasks build the connection, query, CRUD, customer integration, and complete backend integration tests. The tests check temporary identifiers before insertion and verify that only their own temporary rows are removed. The backend integration test refuses to run its checkout/FIFO scenario if the persisted waiting list is nonempty, so it never consumes an existing queue entry.
 
 ## Important validation and booking rules
 
@@ -97,6 +132,6 @@ The program displays nine top-level menu options. Option 5 opens a submenu for c
 
 ## Current limitations
 
-- **In-memory data:** Rooms, customers, reservations, payments, action history, and waiting-list entries are lost when the program exits.
+- **Fixed room capacity:** The existing `Hotel` array supports at most 50 rooms; startup aborts rather than silently truncating a larger database.
 - **Console notifications:** Waiting-list notifications are printed in the console; no email, SMS, or other external notification is sent.
 - **No current-date enforcement:** Reservation dates are validated as calendar dates and checked for conflicts, but check-in/check-out dates are not automatically compared with today's date.

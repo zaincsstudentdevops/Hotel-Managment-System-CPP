@@ -12,6 +12,23 @@ bool WaitingListRepository::loadEntries(
     std::vector<std::string>& names,
     std::string& error
 ) const {
+    std::vector<WaitingListEntrySnapshot> entries;
+    if (!loadEntrySnapshots(entries, error)) {
+        return false;
+    }
+    std::vector<std::string> loadedNames;
+    loadedNames.reserve(entries.size());
+    for (const WaitingListEntrySnapshot& entry : entries) {
+        loadedNames.push_back(entry.customerName);
+    }
+    names.swap(loadedNames);
+    return true;
+}
+
+bool WaitingListRepository::loadEntrySnapshots(
+    std::vector<WaitingListEntrySnapshot>& entries,
+    std::string& error
+) const {
     error.clear();
     if (!database.isConnected()) {
         error = "MariaDB connection is not available.";
@@ -43,7 +60,7 @@ bool WaitingListRepository::loadEntries(
         return false;
     }
 
-    std::vector<std::string> loaded;
+    std::vector<WaitingListEntrySnapshot> loaded;
     while (true) {
         const int fetchStatus = statement.fetch();
         if (fetchStatus == MYSQL_NO_DATA) {
@@ -59,9 +76,12 @@ bool WaitingListRepository::loadEntries(
             error = "The database contains an invalid waiting-list record.";
             return false;
         }
-        loaded.emplace_back(name, nameLength);
+        loaded.push_back({
+            entryId,
+            std::string(name, nameLength)
+        });
     }
-    names.swap(loaded);
+    entries.swap(loaded);
     error.clear();
     return true;
 }

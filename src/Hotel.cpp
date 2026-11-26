@@ -89,6 +89,10 @@ std::size_t Hotel::getRoomCount() const {
     return static_cast<std::size_t>(roomCount);
 }
 
+std::vector<Room> Hotel::getAllRooms() const {
+    return std::vector<Room>(rooms, rooms + roomCount);
+}
+
 bool Hotel::setRoomStatus(int roomNumber, const string& newStatus) {
     const int index = findRoomIndex(roomNumber);
     if (index == -1) {

@@ -63,6 +63,17 @@ std::size_t WaitingQueue::size() const {
     return count;
 }
 
+std::vector<std::string> WaitingQueue::getAllNames() const {
+    std::vector<std::string> names;
+    names.reserve(size());
+    Node* current = front;
+    while (current != nullptr) {
+        names.push_back(current->customerName);
+        current = current->next;
+    }
+    return names;
+}
+
 void WaitingQueue::display() {
     Node* current = front;
 

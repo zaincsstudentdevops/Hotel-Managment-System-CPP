@@ -4,6 +4,7 @@
 
 #include <string>
 #include <cstddef>
+#include <vector>
 using namespace std;
 
 class WaitingQueue {
@@ -33,6 +34,7 @@ public:
     bool peek(string& customerName) const;
     bool isEmpty();
     std::size_t size() const;
+    std::vector<std::string> getAllNames() const;
     void display();
 };
 

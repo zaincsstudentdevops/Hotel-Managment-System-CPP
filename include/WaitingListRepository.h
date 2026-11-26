@@ -6,11 +6,20 @@
 #include <string>
 #include <vector>
 
+struct WaitingListEntrySnapshot {
+    unsigned long long entryId;
+    std::string customerName;
+};
+
 class WaitingListRepository {
 public:
     explicit WaitingListRepository(Database& database);
 
     bool loadEntries(std::vector<std::string>& names, std::string& error) const;
+    bool loadEntrySnapshots(
+        std::vector<WaitingListEntrySnapshot>& entries,
+        std::string& error
+    ) const;
     bool enqueue(
         const std::string& name,
         unsigned long long& entryId,

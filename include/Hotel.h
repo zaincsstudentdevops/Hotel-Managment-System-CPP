@@ -20,6 +20,7 @@ public:
     int findRoomIndex(int roomNumber) const;
     const Room* findRoom(int roomNumber) const;
     std::size_t getRoomCount() const;
+    std::vector<Room> getAllRooms() const;
     bool setRoomStatus(int roomNumber, const std::string& newStatus);
     bool updateRoomStatus(int roomNumber, string newStatus);
     void displayAllRooms() const;

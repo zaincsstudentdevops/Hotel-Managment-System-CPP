@@ -5,6 +5,7 @@
 #include "Reservation.h"
 #include <cstddef>
 #include <string>
+#include <vector>
 
 class ReservationLinkedList {
 private:
@@ -36,6 +37,7 @@ public:
     ) const;
     bool deleteReservation(int id);
     std::size_t size() const;
+    std::vector<Reservation> getAllReservations() const;
     void displayAllReservations();
 };
 
