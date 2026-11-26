@@ -41,8 +41,26 @@ string WaitingQueue::dequeue() {
     return name;
 }
 
+bool WaitingQueue::peek(string& customerName) const {
+    if (front == nullptr) {
+        return false;
+    }
+    customerName = front->customerName;
+    return true;
+}
+
 bool WaitingQueue::isEmpty() {
     return front == nullptr;
+}
+
+std::size_t WaitingQueue::size() const {
+    std::size_t count = 0;
+    Node* current = front;
+    while (current != nullptr) {
+        ++count;
+        current = current->next;
+    }
+    return count;
 }
 
 void WaitingQueue::display() {

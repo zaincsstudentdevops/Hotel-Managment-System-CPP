@@ -100,6 +100,16 @@ void CustomerLinkedList::displayAllCustomers() {
     }
 }
 
+std::size_t CustomerLinkedList::size() const {
+    std::size_t count = 0;
+    Node* current = head;
+    while (current != nullptr) {
+        ++count;
+        current = current->next;
+    }
+    return count;
+}
+
 CustomerLinkedList::~CustomerLinkedList() {
     Node* current = head;
 

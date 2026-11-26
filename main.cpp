@@ -6,6 +6,8 @@
 
 #include "Hotel.h"
 #include "CustomerLinkedList.h"
+#include "HotelBackend.h"
+#include "Database.h"
 #include "ReservationLinkedList.h"
 #include "ActionStack.h"
 #include "WaitingQueue.h"
@@ -101,13 +103,12 @@ bool readRoomType(string& roomType) {
 
 bool readRoomStatus(string& status) {
     while (readNonEmptyLine(
-        "Enter Room Status (Available/Occupied/Maintenance): ", status)) {
-        if (status == "Available" || status == "Occupied" ||
-            status == "Maintenance") {
+        "Enter Room Status (Available): ", status)) {
+        if (status == "Available") {
             return true;
         }
 
-        cout << "Invalid room status. Enter Available, Occupied, or Maintenance.\n";
+        cout << "New rooms must start as Available.\n";
     }
 
     return false;
@@ -229,15 +230,41 @@ bool readPaymentDate(string& date) {
     return false;
 }
 
+void displayCustomerDetails(const Customer& customer) {
+    cout << "Customer ID: " << customer.getCustomerId() << '\n'
+         << "Full Name: " << customer.getFullName() << '\n'
+         << "Phone Number: " << customer.getPhoneNumber() << '\n'
+         << "Email: " << customer.getEmail() << '\n'
+         << "Identity Document: " << customer.getIdentityDocument() << '\n';
+}
+
 }
 
 int main() {
+    Database database;
+    if (!database.connect()) {
+        cerr << "Application startup aborted because MariaDB is unavailable.\n";
+        return 1;
+    }
+
     Hotel myHotel;
     CustomerLinkedList customers;
     ReservationLinkedList reservations;
     ActionStack actionHistory;
     WaitingQueue waitingList;
-    int nextPaymentId = 1;
+    HotelBackend backend(
+        database, myHotel, customers, reservations, waitingList, actionHistory
+    );
+    string startupError;
+    if (!backend.loadAll(startupError)) {
+        cerr << "Application startup aborted. " << startupError << '\n';
+        return 1;
+    }
+    cout << "Loaded " << customers.size() << " customer(s), "
+         << myHotel.getRoomCount() << " room(s), "
+         << reservations.size() << " reservation(s), "
+         << waitingList.size() << " waiting-list entry/entries, and action "
+         << "history from MariaDB.\n";
 
     bool running = true;
     bool inputEnded = false;
@@ -257,6 +284,9 @@ int main() {
         cout << "7. Add Customer to Waiting Queue\n";
         cout << "8. Display Action History\n";
         cout << "9. Exit\n";
+        cout << "10. Search Customer\n";
+        cout << "11. Update Customer\n";
+        cout << "12. Delete Customer\n";
 
         if (!readInteger("\nEnter your choice: ", choice)) {
             cout << "\nInput ended. Exiting.\n";
@@ -280,11 +310,11 @@ int main() {
                 }
 
                 Room newRoom(roomNumber, roomType, roomPrice, roomStatus);
-                if (myHotel.addRoom(newRoom)) {
+                string error;
+                if (backend.addRoom(newRoom, error)) {
                     cout << "\nRoom added successfully!\n";
-                    actionHistory.push("Room " + to_string(roomNumber) + " added");
                 } else {
-                    cout << "\nRoom could not be added.\n";
+                    cout << "\nRoom could not be added: " << error << '\n';
                 }
 
                 break;
@@ -324,11 +354,11 @@ int main() {
                 }
 
                 Customer newCustomer(customerId, fullName, phone, email, cnic);
-                if (customers.insertCustomer(newCustomer)) {
+                string error;
+                if (backend.registerCustomer(newCustomer, error)) {
                     cout << "\nCustomer registered successfully!\n";
-                    actionHistory.push("Customer " + fullName + " registered");
                 } else {
-                    cout << "\nCustomer ID already exists. Customer was not registered.\n";
+                    cout << "\nCustomer was not registered: " << error << '\n';
                 }
 
                 break;
@@ -348,6 +378,8 @@ int main() {
                 cout << "3. Check Out\n";
                 cout << "4. Record Payment\n";
                 cout << "5. Back to Main Menu\n";
+                cout << "6. Cancel Reservation\n";
+                string error;
 
                 if (!readInteger("\nEnter your choice: ", reservationAction)) {
                     running = false;
@@ -403,13 +435,6 @@ int main() {
                             break;
                         }
 
-                        if (reservations.hasOverlappingReservation(
-                                roomNumber, checkInDate, checkOutDate)) {
-                            cout << "\nRoom is already reserved for overlapping dates. "
-                                    "Reservation was not created.\n";
-                            break;
-                        }
-
                         if (!readMatchingNights(nightsFromDates, numberOfNights)) {
                             running = false;
                             inputEnded = true;
@@ -434,14 +459,13 @@ int main() {
                             pricePerNight
                         );
 
-                        if (reservations.insertReservation(newReservation)) {
+                        const ReservationCreateResult createResult =
+                            backend.createReservation(newReservation, error);
+                        if (createResult == ReservationCreateResult::created) {
                             cout << "\nReservation created successfully!\n";
-                            actionHistory.push(
-                                "Reservation " + to_string(reservationId) + " created"
-                            );
                         } else {
-                            cout << "\nReservation ID already exists. "
-                                    "Reservation was not created.\n";
+                            cout << "\nReservation was not created: "
+                                 << error << '\n';
                         }
 
                         break;
@@ -466,28 +490,21 @@ int main() {
                             cout << "\nOnly confirmed reservations can be checked in.\n";
                             break;
                         }
-
-                        const Room* room = myHotel.findRoom(reservation->getRoomNumber());
+                        const Room* room =
+                            myHotel.findRoom(reservation->getRoomNumber());
                         if (room == nullptr) {
                             cout << "\nRoom not found. Check-in was not completed.\n";
                             break;
                         }
-
                         if (!room->isAvailable()) {
                             cout << "\nRoom is not available. Check-in was not completed.\n";
                             break;
                         }
 
-                        if (myHotel.updateRoomStatus(
-                                reservation->getRoomNumber(), "Occupied")) {
-                            reservation->setStatus("CheckedIn");
+                        if (backend.checkIn(reservationId, error)) {
                             cout << "Check-in completed successfully.\n";
-                            actionHistory.push(
-                                "Reservation " + to_string(reservationId) + " checked in"
-                            );
                         } else {
-                            cout << "Check-in was not completed because the room "
-                                    "could not be updated.\n";
+                            cout << "Check-in was not completed: " << error << '\n';
                         }
 
                         break;
@@ -512,15 +529,15 @@ int main() {
                             cout << "\nReservation must be checked in before check-out.\n";
                             break;
                         }
-
-                        const Room* room = myHotel.findRoom(reservation->getRoomNumber());
+                        const Room* room =
+                            myHotel.findRoom(reservation->getRoomNumber());
                         if (room == nullptr) {
                             cout << "\nRoom not found. Check-out was not completed.\n";
                             break;
                         }
-
                         if (room->getStatus() != "Occupied") {
-                            cout << "\nRoom status is inconsistent. Check-out was not completed.\n";
+                            cout << "\nRoom status is inconsistent. "
+                                    "Check-out was not completed.\n";
                             break;
                         }
 
@@ -532,35 +549,25 @@ int main() {
                              << (reservation->hasPayment() ? "Paid" : "Unpaid")
                              << endl;
 
-                        if (myHotel.updateRoomStatus(
-                                reservation->getRoomNumber(), "Available")) {
-                            reservation->setStatus("CheckedOut");
+                        string notifiedCustomer;
+                        if (backend.checkOut(
+                                reservationId, notifiedCustomer, error)) {
                             cout << "Check-out completed successfully.\n";
-                            actionHistory.push(
-                                "Reservation " + to_string(reservationId) + " checked out"
-                            );
-
-                            if (waitingList.isEmpty()) {
+                            if (notifiedCustomer.empty()) {
                                 cout << "Waiting queue is empty; no notification was sent.\n";
                             } else {
-                                string waitingCustomer = waitingList.dequeue();
-                                cout << "Waiting customer notified: " << waitingCustomer
+                                cout << "Waiting customer notified: "
+                                     << notifiedCustomer
                                      << ". Room #"
                                      << reservation->getRoomNumber()
                                      << " is available.\n";
                                 cout << "Customer confirmation is required; "
                                         "no reservation was created.\n";
-                                actionHistory.push(
-                                    "Waiting customer " + waitingCustomer +
-                                    " notified about available room " +
-                                    to_string(reservation->getRoomNumber())
-                                );
                                 cout << "\nRemaining waiting customers:\n";
                                 waitingList.display();
                             }
                         } else {
-                            cout << "Check-out was not completed because the room "
-                                    "could not be updated.\n";
+                            cout << "Check-out was not completed: " << error << '\n';
                         }
 
                         break;
@@ -604,37 +611,46 @@ int main() {
                             break;
                         }
 
-                        Payment payment(
-                            nextPaymentId,
-                            reservationId,
-                            amount,
-                            method,
-                            paymentDate
-                        );
-
-                        if (!reservation->recordPayment(payment)) {
+                        Payment payment;
+                        if (!backend.recordPayment(
+                                reservationId, amount, method, paymentDate,
+                                payment, error)) {
                             cout << fixed << setprecision(2)
                                  << "\nPayment was not recorded. The amount must match "
                                     "the reservation total of Rs."
                                  << reservation->getTotalCost() << ".\n";
+                            cout << error << '\n';
                             break;
                         }
 
                         cout << "\nPayment recorded successfully.\n";
                         payment.displayReceipt();
-                        actionHistory.push(
-                            "Payment " + to_string(nextPaymentId) +
-                            " recorded for reservation " + to_string(reservationId)
-                        );
-                        ++nextPaymentId;
                         break;
                     }
 
                     case 5:
                         break;
 
+                    case 6: {
+                        int reservationId;
+                        if (!readPositiveInteger(
+                                "\nEnter Reservation ID to cancel: ",
+                                reservationId)) {
+                            running = false;
+                            inputEnded = true;
+                            break;
+                        }
+                        if (backend.cancelReservation(reservationId, error)) {
+                            cout << "Reservation cancelled successfully.\n";
+                        } else {
+                            cout << "Reservation was not cancelled: "
+                                 << error << '\n';
+                        }
+                        break;
+                    }
+
                     default:
-                        cout << "\nInvalid reservation action. Please select 1 to 5.\n";
+                        cout << "\nInvalid reservation action. Please select 1 to 6.\n";
                         break;
                 }
 
@@ -655,11 +671,15 @@ int main() {
                     break;
                 }
 
-                waitingList.enqueue(customerName);
+                string error;
+                if (!backend.enqueueWaitingCustomer(customerName, error)) {
+                    cout << "\nCustomer was not added to the waiting queue: "
+                         << error << '\n';
+                    break;
+                }
                 cout << "\nCustomer added to waiting queue!\n";
                 cout << "\n========== WAITING QUEUE ==========\n";
                 waitingList.display();
-                actionHistory.push(customerName + " added to waiting queue");
 
                 break;
             }
@@ -676,8 +696,130 @@ int main() {
                 break;
             }
 
+            case 10: {
+                int customerId;
+                if (!readPositiveInteger("\nEnter Customer ID to search: ",
+                                         customerId)) {
+                    running = false;
+                    inputEnded = true;
+                    break;
+                }
+
+                Customer customer;
+                string error;
+                const CustomerLookupStatus status =
+                    backend.findCustomerById(
+                        customerId, customer, error
+                    );
+                if (status == CustomerLookupStatus::found) {
+                    displayCustomerDetails(customer);
+                } else if (status == CustomerLookupStatus::notFound) {
+                    cout << "\nCustomer ID was not found.\n";
+                } else {
+                    cout << "\nCustomer search failed: " << error << '\n';
+                }
+                break;
+            }
+
+            case 11: {
+                int customerId;
+                if (!readPositiveInteger("\nEnter Customer ID to update: ",
+                                         customerId)) {
+                    running = false;
+                    inputEnded = true;
+                    break;
+                }
+
+                Customer existingCustomer;
+                string error;
+                const CustomerLookupStatus lookupStatus =
+                    backend.findCustomerById(
+                        customerId, existingCustomer, error
+                    );
+                if (lookupStatus == CustomerLookupStatus::notFound) {
+                    cout << "\nCustomer ID was not found; no update was made.\n";
+                    break;
+                }
+                if (lookupStatus == CustomerLookupStatus::error) {
+                    cout << "\nCustomer lookup failed: " << error << '\n';
+                    break;
+                }
+
+                cout << "\nCurrent customer:\n";
+                displayCustomerDetails(existingCustomer);
+
+                string fullName;
+                string phone;
+                string email;
+                string identityDocument;
+                if (!readNonEmptyLine("Enter new Full Name: ", fullName) ||
+                    !readNonEmptyLine("Enter new Phone Number: ", phone) ||
+                    !readNonEmptyLine("Enter new Email: ", email) ||
+                    !readNonEmptyLine(
+                        "Enter new Identity Document: ", identityDocument
+                    )) {
+                    running = false;
+                    inputEnded = true;
+                    break;
+                }
+
+                Customer updatedCustomer(
+                    customerId, fullName, phone, email, identityDocument
+                );
+                const CustomerUpdateStatus updateStatus =
+                    backend.updateCustomer(updatedCustomer, error);
+                if (updateStatus == CustomerUpdateStatus::updated) {
+                    cout << "\nCustomer updated successfully.\n";
+                } else if (updateStatus == CustomerUpdateStatus::unchanged) {
+                    cout << "\nNo customer fields changed.\n";
+                } else if (updateStatus == CustomerUpdateStatus::notFound) {
+                    cout << "\nCustomer was not found in MariaDB; no update was made.\n";
+                } else {
+                    cout << "\nCustomer update failed: " << error << '\n';
+                }
+                break;
+            }
+
+            case 12: {
+                int customerId;
+                if (!readPositiveInteger("\nEnter Customer ID to delete: ",
+                                         customerId)) {
+                    running = false;
+                    inputEnded = true;
+                    break;
+                }
+
+                string confirmation;
+                if (!readNonEmptyLine(
+                        "Permanently delete this customer? (y/n): ",
+                        confirmation
+                    )) {
+                    running = false;
+                    inputEnded = true;
+                    break;
+                }
+                if (confirmation != "y" && confirmation != "Y") {
+                    cout << "\nCustomer deletion cancelled.\n";
+                    break;
+                }
+
+                string error;
+                const CustomerDeleteStatus status =
+                    backend.deleteCustomer(customerId, error);
+                if (status == CustomerDeleteStatus::deleted) {
+                    cout << "\nCustomer deleted successfully.\n";
+                } else if (status == CustomerDeleteStatus::notFound) {
+                    cout << "\nCustomer ID was not found; nothing was deleted.\n";
+                } else if (status == CustomerDeleteStatus::hasReservations) {
+                    cout << "\nCustomer deletion restricted: " << error << '\n';
+                } else {
+                    cout << "\nCustomer deletion failed: " << error << '\n';
+                }
+                break;
+            }
+
             default: {
-                cout << "\nInvalid choice. Please select 1 to 9.\n";
+                cout << "\nInvalid choice. Please select 1 to 12.\n";
                 break;
             }
         }

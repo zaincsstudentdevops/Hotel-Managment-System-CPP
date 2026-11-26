@@ -29,6 +29,14 @@ string ActionStack::pop() {
     return action;
 }
 
+bool ActionStack::peek(string& action) const {
+    if (top == nullptr) {
+        return false;
+    }
+    action = top->action;
+    return true;
+}
+
 bool ActionStack::isEmpty() {
     return top == nullptr;
 }

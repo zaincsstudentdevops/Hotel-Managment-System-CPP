@@ -3,6 +3,7 @@
 #define CUSTOMERLINKEDLIST_H
 
 #include "Customer.h"
+#include <cstddef>
 #include <string>
 
 using namespace std;
@@ -33,6 +34,7 @@ public:
     Customer* searchByName(string name);
     bool deleteCustomer(int id);
     void displayAllCustomers();
+    std::size_t size() const;
 };
 
 #endif

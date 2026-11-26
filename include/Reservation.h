@@ -21,6 +21,16 @@ private:
 public:
     Reservation();
     Reservation(int resId, int custId, int rmNum, string inDate, string outDate, int nights, double ratePerNight);
+    static Reservation fromStoredData(
+        int resId,
+        int custId,
+        int rmNum,
+        string inDate,
+        string outDate,
+        int nights,
+        double storedTotal,
+        string storedStatus
+    );
 
     int getReservationId() const;
     int getCustomerId() const;
@@ -31,6 +41,7 @@ public:
     double getTotalCost() const;
     string getStatus() const;
     bool hasPayment() const;
+    const Payment& getPayment() const;
 
     void setStatus(string newStatus);
     bool recordPayment(const Payment& payment);

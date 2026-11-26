@@ -12,8 +12,12 @@ string Customer::getPhoneNumber() const { return phoneNumber; }
 string Customer::getEmail() const { return email; }
 string Customer::getIdentityDocument() const { return identityDocument; }
 
+void Customer::setFullName(string name) { fullName = name; }
 void Customer::setPhoneNumber(string phone) { phoneNumber = phone; }
 void Customer::setEmail(string mail) { email = mail; }
+void Customer::setIdentityDocument(string document) {
+    identityDocument = document;
+}
 
 void Customer::displayCustomer() const {
     cout << "Customer ID: " << customerId
