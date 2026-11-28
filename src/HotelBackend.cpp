@@ -220,6 +220,23 @@ std::vector<Payment> HotelBackend::getPaymentsSnapshot() const {
     return payments;
 }
 
+std::vector<SmartRoomRecommendation>
+HotelBackend::findSmartRoomRecommendations(
+    const SmartRoomRequirement& requirement,
+    std::string& error
+) const {
+    const std::vector<Room> allRooms = hotel.getAllRooms();
+    const std::vector<Reservation> allReservations =
+        reservations.getAllReservations();
+    const SmartRoomFinder finder;
+    return finder.findRecommendations(
+        allRooms,
+        allReservations,
+        requirement,
+        error
+    );
+}
+
 bool HotelBackend::getWaitingListSnapshot(
     std::vector<WaitingListEntrySnapshot>& entries,
     std::string& error

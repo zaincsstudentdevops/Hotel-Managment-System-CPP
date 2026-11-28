@@ -48,14 +48,15 @@ int main() {
         return new httplib::ThreadPool(1);
     };
     server.set_payload_max_length(1024 * 1024);
+    registerHotelApi(server, backend);
     if (!server.set_mount_point("/", frontendDirectory.string())) {
         std::cerr << "Could not mount the frontend static files.\n";
         return 1;
     }
     server.set_error_handler(
         [](const httplib::Request& request, httplib::Response& response) {
-            if (request.path.compare(0, 5, "/api/") == 0) {
-                response.status = 404;
+            if (request.path.compare(0, 5, "/api/") == 0 &&
+                response.status == 404 && response.body.empty()) {
                 response.set_content(
                     nlohmann::json({
                         {"error", "API endpoint was not found."},
@@ -86,8 +87,6 @@ int main() {
             );
         }
     );
-    registerHotelApi(server, backend);
-
     std::cout << "Hotel Management web dashboard: http://127.0.0.1:8080\n"
               << "Serving MariaDB-backed data. Press Ctrl+C to stop.\n";
     if (!server.listen("127.0.0.1", 8080)) {

@@ -417,6 +417,99 @@ void registerCustomerRoutes(httplib::Server& server, HotelBackend& backend) {
         });
 }
 
+void registerSmartRoomRoute(
+    httplib::Server& server,
+    HotelBackend& backend
+) {
+    server.Post("/api/smart-room-finder",
+        [&backend](const httplib::Request& request,
+                   httplib::Response& response) {
+            Json body;
+            if (!parseObject(request, response, body)) {
+                return;
+            }
+
+            std::string checkIn;
+            std::string checkOut;
+            std::string category = "Any";
+            int numberOfGuests = 0;
+            double budget = 0.0;
+            if (!requiredString(
+                    body, "check_in_date", checkIn, response
+                ) ||
+                !requiredString(
+                    body, "check_out_date", checkOut, response
+                ) ||
+                !requiredInt(
+                    body, "number_of_guests", numberOfGuests, response
+                ) ||
+                !requiredNumber(
+                    body, "maximum_budget_per_night", budget, response
+                )) {
+                return;
+            }
+
+            if (body.contains("category")) {
+                if (!body["category"].is_string()) {
+                    sendError(
+                        response,
+                        400,
+                        "Field 'category' must be a string.",
+                        "invalid_field"
+                    );
+                    return;
+                }
+                category = body["category"].get<std::string>();
+                if (category.empty()) {
+                    category = "Any";
+                }
+            }
+
+            SmartRoomRequirement requirement;
+            requirement.checkInDate = checkIn;
+            requirement.checkOutDate = checkOut;
+            requirement.category = category;
+            requirement.maximumBudgetPerNight = budget;
+            requirement.numberOfGuests = numberOfGuests;
+
+            std::string error;
+            const auto recommendations =
+                backend.findSmartRoomRecommendations(requirement, error);
+            if (!error.empty()) {
+                sendError(response, 422, error, "invalid_search");
+                return;
+            }
+
+            Json items = Json::array();
+            for (const SmartRoomRecommendation& recommendation :
+                 recommendations) {
+                items.push_back({
+                    {"room_number",
+                     recommendation.room.getRoomNumber()},
+                    {"category",
+                     recommendation.room.getCategory()},
+                    {"price_per_night",
+                     recommendation.room.getPricePerNight()},
+                    {"status",
+                     recommendation.room.getStatus()},
+                    {"number_of_nights",
+                     recommendation.numberOfNights},
+                    {"maximum_guests",
+                     recommendation.maximumGuests},
+                    {"total_cost",
+                     recommendation.totalCost},
+                    {"reason",
+                     recommendation.reason}
+                });
+            }
+
+            sendJson(response, 200, {
+                {"items", std::move(items)},
+                {"count", recommendations.size()}
+            });
+        });
+}
+
 void registerRoomRoutes(httplib::Server& server, HotelBackend& backend) {
     server.Get("/api/rooms", [&backend](const auto&, auto& response) {
         const auto rooms = backend.getRoomsSnapshot();
@@ -917,6 +1010,7 @@ void registerDashboardRoutes(httplib::Server& server, HotelBackend& backend) {
 void registerHotelApi(httplib::Server& server, HotelBackend& backend) {
     registerDashboardRoutes(server, backend);
     registerCustomerRoutes(server, backend);
+    registerSmartRoomRoute(server, backend);
     registerRoomRoutes(server, backend);
     registerReservationRoutes(server, backend);
     registerPaymentRoutes(server, backend);

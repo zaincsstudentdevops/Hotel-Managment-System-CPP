@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b0e13">
-  <title>Haven Hotel | Management</title>
+  <meta name="theme-color" content="#151d28">
+  <title>LUXORA | Hotel Management</title>
   <link rel="stylesheet" href="/css/styles.css">
   <script src="/js/app.js" defer></script>
 </head>
@@ -20,34 +20,36 @@
     <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
     <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="icon-sparkle" viewBox="0 0 24 24"><path d="m12 3 1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/><path d="m19 16 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/></symbol>
     <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.64 9A7 7 0 0 1 17.5 6L20 12M4 12l2.5 6A7 7 0 0 0 18.36 15"/></symbol>
   </svg>
 
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <a class="brand" href="#" data-page-link="dashboard" aria-label="Haven Hotel home">
-        <span class="brand-mark">H</span>
-        <span class="brand-copy"><strong>HAVEN</strong><small>HOTEL MANAGEMENT</small></span>
+      <a class="brand" href="#" data-page-link="dashboard" aria-label="LUXORA home">
+        <span class="brand-mark">L</span>
+        <span class="brand-copy"><strong>LUXORA</strong><small>HOTEL MANAGEMENT</small></span>
       </a>
       <div class="nav-caption">WORKSPACE</div>
       <nav class="main-nav" aria-label="Main navigation">
         <button class="nav-link active" data-page-link="dashboard" aria-current="page"><svg><use href="#icon-grid"/></svg><span>Overview</span></button>
         <button class="nav-link" data-page-link="customers"><svg><use href="#icon-users"/></svg><span>Customers</span></button>
         <button class="nav-link" data-page-link="rooms"><svg><use href="#icon-bed"/></svg><span>Rooms</span></button>
+        <button class="nav-link nav-link-ai" data-page-link="smart-finder"><svg><use href="#icon-sparkle"/></svg><span>AI Room Finder</span></button>
         <button class="nav-link" data-page-link="reservations"><svg><use href="#icon-calendar"/></svg><span>Reservations</span></button>
         <button class="nav-link" data-page-link="payments"><svg><use href="#icon-credit"/></svg><span>Payments</span></button>
         <button class="nav-link" data-page-link="waiting-list"><svg><use href="#icon-clock"/></svg><span>Waiting list</span></button>
       </nav>
       <div class="sidebar-bottom">
         <div class="server-status"><span class="status-pulse" id="serverStatusPulse"></span><span><strong id="systemStatusText">Connecting…</strong><small>MariaDB · Local server</small></span></div>
-        <div class="sidebar-footer">HAVEN HOTEL <span>•</span> MANAGEMENT</div>
+        <div class="sidebar-footer">LUXORA <span>•</span> MANAGEMENT</div>
       </div>
     </aside>
 
     <main class="main-area">
       <header class="topbar">
         <button class="icon-button mobile-menu" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false"><svg><use href="#icon-menu"/></svg></button>
-        <div class="breadcrumb"><span>Haven Hotel</span><span class="crumb-separator">/</span><strong id="currentPageName">Overview</strong></div>
+        <div class="breadcrumb"><span>LUXORA</span><span class="crumb-separator">/</span><strong id="currentPageName">Overview</strong></div>
         <div class="topbar-actions">
           <span class="live-pill"><span id="liveStatusPulse"></span><strong id="liveStatusText">CONNECTING</strong></span>
           <button class="icon-button" id="refreshButton" aria-label="Refresh dashboard data" title="Refresh data"><svg><use href="#icon-refresh"/></svg></button>
@@ -61,7 +63,7 @@
             <img class="dashboard-hero-image" src="/assets/hotel-pool.jpg" alt="">
             <div class="dashboard-hero-shade"></div>
             <div class="dashboard-hero-copy">
-              <p class="hero-kicker">HAVEN HOTEL · HOTEL OPERATIONS</p>
+              <p class="hero-kicker">LUXORA · HOTEL OPERATIONS</p>
               <h1>Good day, Administrator</h1>
               <p>A considered view of your rooms, reservations and guest activity.</p>
             </div>
@@ -168,6 +170,60 @@
           </article>
         </section>
 
+        <section class="page" id="page-smart-finder" data-page="smart-finder">
+          <div class="page-heading ai-page-heading">
+            <p class="eyebrow ai-page-eyebrow"><svg><use href="#icon-sparkle"/></svg> LUXORA INTELLIGENCE</p>
+            <h1 class="ai-page-title"><span class="ai-title-mark">AI</span><span>ROOM FINDER</span></h1>
+            <p class="subheading">Find suitable rooms using Uniform Cost Search.</p>
+          </div>
+          <article class="panel form-panel compact-form-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">SEARCH REQUIREMENTS</p><h2>Find an available room</h2></div>
+              <span class="form-step">AI</span>
+            </div>
+            <form id="smartRoomFinderForm" class="smart-finder-form">
+              <label>Check-in
+                <input name="check_in_date" type="date" required>
+                <small class="field-guidance">Choose today or a later arrival date.</small>
+              </label>
+              <label>Check-out
+                <input name="check_out_date" type="date" required>
+                <small class="field-guidance">Choose a date after check-in.</small>
+              </label>
+              <label>Room category
+                <select name="category">
+                  <option value="Any">Any category</option>
+                  <option value="Single">Single</option>
+                  <option value="Double">Double</option>
+                  <option value="Deluxe">Deluxe</option>
+                </select>
+                <small class="field-guidance">Choose a category or leave Any category.</small>
+              </label>
+              <label>Number of guests
+                <input name="number_of_guests" type="number" min="1" step="1" required value="1">
+                <small class="field-guidance">Single: 1 guest; Double/Deluxe: up to 2.</small>
+              </label>
+              <label>Maximum budget per night
+                <input name="maximum_budget_per_night" type="number" min="0.01" step="0.01" required placeholder="0.00">
+                <small class="field-guidance">Enter your maximum budget in Rs. per night.</small>
+              </label>
+              <button class="button button-primary align-end" type="submit">
+                <svg><use href="#icon-search"/></svg> Find rooms
+              </button>
+            </form>
+            <p class="form-message" id="smartRoomFinderMessage" aria-live="polite"></p>
+          </article>
+          <article class="panel table-panel">
+            <div class="panel-heading">
+              <div><p class="eyebrow">UCS RESULTS</p><h2>Recommended rooms <span class="count-pill" id="smartRoomCount">—</span></h2></div>
+              <span class="panel-note">Lowest stay cost first</span>
+            </div>
+            <div class="smart-room-results" id="smartRoomResults" aria-live="polite">
+              Enter your requirements to search rooms.
+            </div>
+          </article>
+        </section>
+
         <section class="page" id="page-reservations" data-page="reservations">
           <div class="page-heading"><p class="eyebrow">BOOKING MANAGEMENT</p><h1>Reservations</h1><p class="subheading">Create and manage guest stays from check-in through checkout.</p></div>
           <article class="panel form-panel reservation-form-panel">
@@ -245,7 +301,7 @@
           </div>
         </section>
       </div>
-      <footer class="app-footer"><span>HAVEN HOTEL MANAGEMENT</span><span>Connected to your local MariaDB system</span></footer>
+      <footer class="app-footer"><span>Developed by BHOJPURI CODERS</span><span>Connected to your local MariaDB system</span></footer>
     </main>
   </div>
 

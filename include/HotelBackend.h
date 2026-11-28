@@ -10,6 +10,7 @@
 #include "ReservationLinkedList.h"
 #include "ReservationRepository.h"
 #include "RoomRepository.h"
+#include "SmartRoomFinder.h"
 #include "WaitingListRepository.h"
 #include "WaitingQueue.h"
 
@@ -49,6 +50,10 @@ public:
     std::vector<Room> getRoomsSnapshot() const;
     std::vector<Reservation> getReservationsSnapshot() const;
     std::vector<Payment> getPaymentsSnapshot() const;
+    std::vector<SmartRoomRecommendation> findSmartRoomRecommendations(
+        const SmartRoomRequirement& requirement,
+        std::string& error
+    ) const;
     bool getWaitingListSnapshot(
         std::vector<WaitingListEntrySnapshot>& entries,
         std::string& error
