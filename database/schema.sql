@@ -1,6 +1,6 @@
--- Hotel Management System schema for MySQL/MariaDB.
--- The current C++ application stores all data in memory; this file is a
--- proposed relational representation and has not been executed.
+-- Hotel Management System schema used by the C++ application and web dashboard.
+-- Application processes load persisted records at startup and save changes
+-- through the database repositories.
 
 CREATE DATABASE IF NOT EXISTS hotel_management
     CHARACTER SET utf8mb4

@@ -32,7 +32,7 @@ It uses the same local C++ server and keeps ordinary browser access at
 `http://127.0.0.1:8080`.
 
 1. Start MySQL/MariaDB from the XAMPP Control Panel.
-2. Build `hotel_web_ucrt64.exe` using the command above or the VS Code task.
+2. Build `hotel_web_ucrt64.exe` using the command above.
 3. Run the launcher from PowerShell in the project root:
 
    ```powershell

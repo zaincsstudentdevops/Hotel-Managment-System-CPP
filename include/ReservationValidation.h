@@ -5,6 +5,7 @@
 #include "Reservation.h"
 
 #include <cstdint>
+#include <ctime>
 #include <string>
 
 namespace reservation_validation {
@@ -55,6 +56,48 @@ inline bool dateOrdinal(const std::string& date, std::int64_t& ordinal) {
     return true;
 }
 
+inline bool currentIsoDate(std::string& date) {
+    const std::time_t now = std::time(nullptr);
+    std::tm localTime{};
+#if defined(_WIN32)
+    if (localtime_s(&localTime, &now) != 0) {
+        return false;
+    }
+#else
+    if (localtime_r(&now, &localTime) == nullptr) {
+        return false;
+    }
+#endif
+
+    char buffer[11]{};
+    if (std::strftime(buffer, sizeof(buffer), "%Y-%m-%d", &localTime) != 10) {
+        return false;
+    }
+    date.assign(buffer, 10);
+    return true;
+}
+
+inline bool validateCheckInDateNotPast(
+    const std::string& checkInDate,
+    std::string& error
+) {
+    std::int64_t checkInOrdinal = 0;
+    std::int64_t todayOrdinal = 0;
+    std::string today;
+    if (!dateOrdinal(checkInDate, checkInOrdinal) ||
+        !currentIsoDate(today) ||
+        !dateOrdinal(today, todayOrdinal)) {
+        error = "Could not validate the check-in date.";
+        return false;
+    }
+    if (checkInOrdinal < todayOrdinal) {
+        error = "Check-in date must be today or later.";
+        return false;
+    }
+    error.clear();
+    return true;
+}
+
 inline bool validateDatesAndNights(
     const Reservation& reservation,
     std::string& error
@@ -66,6 +109,12 @@ inline bool validateDatesAndNights(
         checkOutOrdinal <= checkInOrdinal) {
         error = "Reservation dates must be valid and check-out must follow "
                 "check-in.";
+        return false;
+    }
+
+    if (!validateCheckInDateNotPast(
+            reservation.getCheckInDate(), error
+        )) {
         return false;
     }
 

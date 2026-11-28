@@ -6,6 +6,7 @@ const state = {
   reservations: [],
   payments: [],
   waitingEntries: [],
+  smartRecommendations: [],
   dashboard: null,
   roomFilter: "all",
   reservationFilter: "all"
@@ -212,6 +213,39 @@ function renderCustomerSearchResult(customer) {
     <div class="result-field"><span>Email</span><strong>${escapeHtml(customer.email)}</strong></div>
     <div class="result-field"><span>Identity document</span><strong>${escapeHtml(customer.identity_document)}</strong></div>
   </div>`;
+}
+
+function renderSmartRoomRecommendations() {
+  $("#smartRoomCount").textContent = state.smartRecommendations.length;
+  if (!state.smartRecommendations.length) {
+    $("#smartRoomResults").innerHTML =
+      '<div class="smart-room-empty">No suitable rooms are available for these requirements.</div>';
+    return;
+  }
+
+  $("#smartRoomResults").innerHTML =
+    state.smartRecommendations.map((recommendation) => {
+      const category = String(recommendation.category);
+      const image =
+        ROOM_CATEGORY_IMAGES[category] || ROOM_CATEGORY_IMAGES.Double;
+      return `<article class="smart-room-card">
+        <img src="${image}" alt="${escapeHtml(category)} room category" loading="lazy">
+        <div class="smart-room-copy">
+          <div class="smart-room-heading">
+            <h3>Room ${escapeHtml(recommendation.room_number)}</h3>
+            <span class="status-badge ${statusClass(recommendation.status)}">${escapeHtml(recommendation.status)}</span>
+          </div>
+          <p class="room-card-category">${escapeHtml(category)} accommodation</p>
+          <p class="room-card-price">${money(recommendation.price_per_night)} <small>per night</small></p>
+          <p class="smart-room-capacity">Fits up to ${escapeHtml(recommendation.maximum_guests)} ${recommendation.maximum_guests === 1 ? "guest" : "guests"}</p>
+          <p class="smart-room-total"><strong>${money(recommendation.total_cost)}</strong> for ${escapeHtml(recommendation.number_of_nights)} ${recommendation.number_of_nights === 1 ? "night" : "nights"}</p>
+          <p class="smart-room-reason">${escapeHtml(recommendation.reason)}</p>
+          <button class="button button-primary smart-room-book" type="button" data-smart-room="${escapeHtml(recommendation.room_number)}">
+            Use this room
+          </button>
+        </div>
+      </article>`;
+    }).join("");
 }
 
 function renderRooms() {
@@ -459,6 +493,11 @@ function setDefaultDates() {
   paymentDate.value = dateValue;
   $("#reservationCreateForm [name=check_in_date]").min = dateValue;
   $("#reservationCreateForm [name=check_out_date]").min = dateValue;
+  const smartCheckIn = $("#smartRoomFinderForm [name=check_in_date]");
+  const smartCheckOut = $("#smartRoomFinderForm [name=check_out_date]");
+  smartCheckIn.min = dateValue;
+  smartCheckOut.min = dateValue;
+  smartCheckIn.value = dateValue;
 }
 
 function editCustomer(customerId) {
@@ -493,6 +532,42 @@ document.addEventListener("click", async (event) => {
   if (nav) {
     event.preventDefault();
     navigateTo(nav.dataset.pageLink);
+    return;
+  }
+  const smartRoomButton = event.target.closest("[data-smart-room]");
+  if (smartRoomButton) {
+    const roomNumber = Number(smartRoomButton.dataset.smartRoom);
+    const recommendation = state.smartRecommendations.find(
+      (item) => Number(item.room_number) === roomNumber
+    );
+    if (!recommendation) {
+      showToast("This room recommendation is no longer available. Search again.", true);
+      return;
+    }
+    const checkIn =
+      $("#smartRoomFinderForm [name=check_in_date]").value;
+    const checkOut =
+      $("#smartRoomFinderForm [name=check_out_date]").value;
+    const roomSelect = $("#reservationRoom");
+    const roomValue = String(roomNumber);
+    const optionExists = Array.from(roomSelect.options).some(
+      (option) => option.value === roomValue
+    );
+    if (!optionExists) {
+      const option = document.createElement("option");
+      option.value = roomValue;
+      option.dataset.rate = String(recommendation.price_per_night);
+      option.textContent =
+        `Room ${roomNumber} · ${recommendation.category} · ` +
+        `${money(recommendation.price_per_night)} · recommended for these dates`;
+      roomSelect.append(option);
+    }
+    navigateTo("reservations");
+    $("#reservationCreateForm [name=check_in_date]").value = checkIn;
+    $("#reservationCreateForm [name=check_out_date]").value = checkOut;
+    roomSelect.value = roomValue;
+    updateReservationEstimate();
+    showToast(`Room ${roomNumber} selected. Continue with the existing reservation form.`);
     return;
   }
   const editButton = event.target.closest("[data-edit-customer]");
@@ -613,6 +688,37 @@ $("#roomCreateForm").addEventListener("submit", async (event) => {
     "roomCreateMessage",
     "Room added successfully."
   );
+});
+
+$("#smartRoomFinderForm [name=check_in_date]").addEventListener("change", (event) => {
+  $("#smartRoomFinderForm [name=check_out_date]").min = event.currentTarget.value;
+});
+
+$("#smartRoomFinderForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const values = formValues(event.currentTarget);
+  values.number_of_guests = Number(values.number_of_guests);
+  values.maximum_budget_per_night =
+    Number(values.maximum_budget_per_night);
+  setFormMessage("smartRoomFinderMessage", "Searching with Uniform Cost Search…");
+  try {
+    const result = await api("/api/smart-room-finder", {
+      method: "POST",
+      body: values
+    });
+    state.smartRecommendations = result.items;
+    renderSmartRoomRecommendations();
+    setFormMessage(
+      "smartRoomFinderMessage",
+      result.count
+        ? `${result.count} suitable ${result.count === 1 ? "room" : "rooms"} found.`
+        : "No suitable rooms were found."
+    );
+  } catch (error) {
+    state.smartRecommendations = [];
+    renderSmartRoomRecommendations();
+    setFormMessage("smartRoomFinderMessage", error.message, true);
+  }
 });
 
 $("#roomFilters").addEventListener("click", (event) => {
